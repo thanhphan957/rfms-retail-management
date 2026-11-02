@@ -4,8 +4,9 @@ import api, { getErrorMessage } from "../../services/api";
 import { Order, Paginated } from "../../types";
 import { money, dateTime } from "../../utils/format";
 import { EmptyState } from "../../components/EmptyState";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { useToast } from "../../contexts/ToastContext";
-import { Package } from "lucide-react";
+import { Package, XCircle } from "lucide-react";
 
 const statusLabel: Record<string, string> = {
   CONFIRMED: "Đã xác nhận",
@@ -20,13 +21,30 @@ const statusColor: Record<string, string> = {
 
 export function MyOrdersPage() {
   const [data, setData] = useState<Paginated<Order> | null>(null);
+  const [cancelId, setCancelId] = useState<string | null>(null);
   const toast = useToast();
 
-  useEffect(() => {
+  const load = () => {
     api.get("/orders/me")
       .then((r) => setData(r.data.data))
       .catch((e) => toast.push(getErrorMessage(e), "error"));
+  };
+
+  useEffect(() => {
+    load();
   }, []);
+
+  const handleCancelOrder = async () => {
+    if (!cancelId) return;
+    try {
+      await api.patch(`/orders/${cancelId}/cancel`);
+      toast.push("Đã hủy đơn hàng thành công", "success");
+      setCancelId(null);
+      load();
+    } catch (e) {
+      toast.push(getErrorMessage(e, "Không thể hủy đơn hàng"), "error");
+    }
+  };
 
   return (
     <div>
@@ -42,14 +60,24 @@ export function MyOrdersPage() {
                   {statusLabel[order.status]}
                 </span>
               </div>
-              <span className="text-xs text-slate-400">{dateTime(order.createdAt)}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">{dateTime(order.createdAt)}</span>
+                {order.status !== "CANCELLED" && (
+                  <button
+                    onClick={() => setCancelId(order._id)}
+                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium transition"
+                  >
+                    <XCircle size={14} /> Hủy đơn
+                  </button>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <img src={item.product.image} alt={item.product.name} className="h-12 w-12 rounded object-cover bg-slate-100 flex-shrink-0" />
+                  <img src={item.product?.image || ""} alt={item.product?.name || "Product"} className="h-12 w-12 rounded object-cover bg-slate-100 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <Link to={`/products/${item.product._id}`} className="text-sm font-medium hover:text-brand-700 line-clamp-1">{item.product.name}</Link>
+                    <Link to={`/products/${item.product?._id}`} className="text-sm font-medium hover:text-brand-700 line-clamp-1">{item.product?.name}</Link>
                     <p className="text-xs text-slate-400">x{item.quantity} × {money(item.price)}</p>
                   </div>
                   <div className="text-sm font-semibold">{money(item.price * item.quantity)}</div>
@@ -63,6 +91,14 @@ export function MyOrdersPage() {
           </div>
         ))}
       </div>
+
+      <ConfirmDialog
+        open={!!cancelId}
+        title="Hủy đơn hàng"
+        message="Bạn có chắc chắn muốn hủy đơn hàng này? Số lượng sản phẩm sẽ được hoàn lại vào kho hàng."
+        onClose={() => setCancelId(null)}
+        onConfirm={handleCancelOrder}
+      />
     </div>
   );
 }

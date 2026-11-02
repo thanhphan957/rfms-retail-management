@@ -52,6 +52,27 @@ export async function listMyOrders(customerId: string, query: Record<string, unk
   return paginated(items, total, page, limit);
 }
 
+export async function cancelOrder(orderId: string, customerId: string) {
+  const order = await Order.findOne({ _id: orderId, customer: customerId });
+  if (!order) {
+    throw new ApiError(404, "Không tìm thấy đơn hàng");
+  }
+  if (order.status === "CANCELLED") {
+    throw new ApiError(400, "Đơn hàng này đã bị hủy trước đó");
+  }
+
+  // Hoàn lại tồn kho cho các sản phẩm trong đơn
+  for (const item of order.items) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { stock: item.quantity },
+    });
+  }
+
+  order.status = "CANCELLED";
+  await order.save();
+  return order.populate({ path: "items.product", select: "name sku image price" });
+}
+
 export async function hasPurchasedProduct(customerId: string, productId: string): Promise<boolean> {
   const order = await Order.findOne({
     customer: customerId,

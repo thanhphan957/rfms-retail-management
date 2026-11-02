@@ -10,6 +10,7 @@ router.use(authorize("CUSTOMER"));
 
 router.post("/", controller.create);
 router.get("/me", controller.listMine);
+router.patch("/:id/cancel", controller.cancel);
 router.get("/check/:productId", controller.checkPurchased);
 
 export default router;

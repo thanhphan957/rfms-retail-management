@@ -14,6 +14,12 @@ export const listMine = asyncHandler(async (req: AuthRequest, res: Response) => 
   return success(res, data, "My orders");
 });
 
+export const cancel = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const data = await orderService.cancelOrder(id, req.user!.id);
+  return success(res, data, "Đã hủy đơn hàng thành công");
+});
+
 export const checkPurchased = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { productId } = req.params;
   const purchased = await orderService.hasPurchasedProduct(req.user!.id, productId);
