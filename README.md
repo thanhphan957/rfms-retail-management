@@ -6,7 +6,8 @@
 ## 1. Project Overview (Tổng quan)
 **RFMS (Retail Feedback Management System)** là giải pháp web app hoàn chỉnh cho các chuỗi cửa hàng bán lẻ và siêu thị tiện lợi, giúp:
 - Quản lý danh mục, sản phẩm, tồn kho và xuất mã **QR Code đánh giá**.
-- Cho phép khách hàng truy cập trực tiếp bằng mã QR tại quầy/trên bao bì để xem thông tin, gửi đánh giá (1–5 sao), nhận xét và quản lý đánh giá của chính mình.
+- Cho phép khách hàng truy cập trực tiếp bằng mã QR tại quầy/trên bao bì để xem thông tin, thêm vào giỏ hàng và đặt hàng.
+- **Quy trình mua sắm & đánh giá thực tế**: Bắt buộc khách hàng phải mua sản phẩm trước khi gửi đánh giá, kèm tính năng quản lý đơn hàng và hủy đơn tự động hoàn kho.
 - Hỗ trợ nhân viên (Staff) xem và gửi phản hồi chăm sóc khách hàng.
 - Cung cấp cho Ban quản trị (Admin) hệ thống phân tích KPI, biểu đồ trực quan, kiểm duyệt đánh giá, quản trị người dùng và xuất báo cáo CSV.
 - Kiến trúc sẵn sàng tích hợp AI Sentiment Analysis mà không gián đoạn hệ thống hiện tại.
@@ -150,3 +151,7 @@ npm run build     # Biên dịch bundle sản xuất tối ưu vào dist/
 - `GET /api/dashboard/staff` : Thống kê Staff (Pending reviews)
 - `GET /api/reports` : Báo cáo thống kê tổng hợp (Lọc theo ngày, rating, sản phẩm)
 - `GET /api/reports/export` : Tải file báo cáo định dạng CSV
+- `POST /api/orders` : Đặt hàng từ giỏ hàng & trừ tồn kho (Customer)
+- `GET /api/orders/me` : Lịch sử đơn hàng của tôi (Customer)
+- `PATCH /api/orders/:id/cancel` : Hủy đơn hàng & hoàn lại tồn kho (Customer)
+- `GET /api/orders/check/:productId` : Kiểm tra trạng thái đã mua sản phẩm (Customer)
