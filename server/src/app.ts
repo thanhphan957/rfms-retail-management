@@ -23,7 +23,10 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.clientOrigin,
+      origin: (requestOrigin, callback) => {
+        // Cho phép localhost, Vercel và các client requests
+        callback(null, true);
+      },
       credentials: true,
     }),
   );
